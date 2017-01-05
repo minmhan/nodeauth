@@ -29,6 +29,13 @@ module.exports = function(app, passport){
         failureRedirect:'/'
     }));
 
+    // Twitter
+    app.get('/auth/twitter', passport.authenticate('twitter'));
+    app.get('/auth/twitter/callback', passport.authenticate('twitter', {
+        successRedirect: '/profile',
+        failureRedirect: '/'
+    }));
+
     app.get('/profile', function(req, res){
         res.render('profile', { user: req.user });
     });
@@ -37,6 +44,7 @@ module.exports = function(app, passport){
         req.logout();
         res.redirect('/');
     })
+
 
 };
 
