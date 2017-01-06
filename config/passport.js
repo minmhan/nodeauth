@@ -16,6 +16,7 @@ module.exports = function(passport){
         });
     });
 
+    // Local
     passport.use('local-signup', new LocalStrategy({
             usernameField: 'email',
             passwordField: 'password',
@@ -59,6 +60,7 @@ module.exports = function(passport){
         });
     }));
 
+    // Facebook
     passport.use(new FacebookStrategy({
         clientID: configAuth.facebookAuth.clientID,
         clientSecret: configAuth.facebookAuth.clientSecret,
@@ -108,7 +110,8 @@ module.exports = function(passport){
 
             });
     }));
- /*
+ 
+    // Twitter
     passport.use(new TwitterStrategy({
         consumerKey: configAuth.twitterAuth.consumerKey,
         consumerSecret: configAuth.twitterAuth.consumerSecret,
@@ -139,9 +142,8 @@ module.exports = function(passport){
             });
         });
     }));
-*/
 
-
+    // Google Strategy
     passport.use(new GoogleStrategy({
         clientID: configAuth.googleAuth.clientID,
         clientSecret: configAuth.googleAuth.clientSecret,
