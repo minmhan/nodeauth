@@ -6,7 +6,7 @@ module.exports = function(app, passport){
     app.get('/login', function(req, res){
         res.render('login', { message: req.flash('loginMessage')});
     }); 
-    app.post('/login', passport.authenticate('local-signup', {
+    app.post('/login', passport.authenticate('local-login', {
         successRedirect:'/profile',
         failureRedirect: '/login',
         failureFlash:true
@@ -52,6 +52,21 @@ module.exports = function(app, passport){
         res.redirect('/');
     })
 
+
+    app.get('/connect/local', function(req, res){
+        res.render('connect-local', { message: req.flash('loginMessage')});
+    });
+    app.post('/connect/local', passport.authenticate('local-signup', {
+        successRedirect: '/profile',
+        failureRedirect:'/connect/local',
+        failureFlash: true
+    }));
+
+    app.get('/connect/facebook', passport.authorize('facebook', { scope: 'email'}));
+    app.get('/connect/facebook/callback', passport.authorize('facebook', {
+        successRedirect: '/profile',
+        failureRedirect: '/'
+    }));
 
 };
 
