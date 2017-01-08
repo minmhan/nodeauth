@@ -49,6 +49,7 @@ module.exports = function(passport){
         passwordField: 'password',
         passReqToCallback: true
     }, function(req, email, password, done){
+        console.log(email);
         User.findOne( { 'local.email': email}, function(err, user){
             if(err) return done(err);
             if(!user)
@@ -115,31 +116,44 @@ module.exports = function(passport){
     passport.use(new TwitterStrategy({
         consumerKey: configAuth.twitterAuth.consumerKey,
         consumerSecret: configAuth.twitterAuth.consumerSecret,
-        callbackURL: configAuth.twitterAuth.callbackURL
+        callbackURL: configAuth.twitterAuth.callbackURL,
+        passReqToCallback: true
     },
-    function(token, tokenSecret, profile, done){
+    function(req, token, tokenSecret, profile, done){
         console.log(profile.displayName);
         process.nextTick(function(){
-            User.findOne( {'twitter.id': profile.id}, function(err, user){
-                if(err) return done(err);
-                if(user){
-                    return done(null, user);
-                }else{
-                    var newUser = new User();
-                    // set all of the user data that we need
-                    newUser.twitter.id = profile.id;
-                    newUser.twitter.token = token;
-                    newUser.twitter.username = profile.username;
-                    newUser.twitter.displayName = profile.displayName;
+            if(!req.user){
+                User.findOne( {'twitter.id': profile.id}, function(err, user){
+                    if(err) return done(err);
+                    if(user){
+                        return done(null, user);
+                    }else{
+                        var newUser = new User();
+                        // set all of the user data that we need
+                        newUser.twitter.id = profile.id;
+                        newUser.twitter.token = token;
+                        newUser.twitter.username = profile.username;
+                        newUser.twitter.displayName = profile.displayName;
 
-                    newUser.save(function(err) {
-                    if (err)
-                        throw err;
-                    
-                    return done(null, newUser);
-                    });
-                }
-            });
+                        newUser.save(function(err) {
+                        if (err)
+                            throw err;
+                        
+                        return done(null, newUser);
+                        });
+                    }
+                });
+            }else{
+                var user = req.user;
+                user.twitter.id = profile.id;
+                user.twitter.token = token;
+                user.twitter.username = profile.username;
+                user.twitter.displayName = profile.displayName;
+                user.save(function(err){
+                    if(err) throw err;
+                    return done(null, user);
+                });
+            }
         });
     }));
 
@@ -148,25 +162,42 @@ module.exports = function(passport){
         clientID: configAuth.googleAuth.clientID,
         clientSecret: configAuth.googleAuth.clientSecret,
         callbackURL: configAuth.googleAuth.callbackURL,
-    }, function(token, refreshToken, profile, done){
+        passReqToCallback: true
+    }, function(req, token, refreshToken, profile, done){
         process.nextTick(function(){
-            User.findOne( { 'google.id': profile.id }, function(err, user){
-                if(err) return done(err);
-                if(user){
-                    return done(null, user);
-                }else{
-                    var newUser = new User();
-                    newUser.google.id = profile.id;
-                    newUser.google.token = token;
-                    newUser.google.name  = profile.displayName;
-                    newUser.google.email = profile.emails[0].value; 
+            console.log("google token: " + token);
+            console.log('google : ' );
+            if(!req.user){
+                User.findOne( { 'google.id': profile.id }, function(err, user){
+                    if(err) return done(err);
+                    if(user){
+                        return done(null, user);
+                    }else{
+                        var newUser = new User();
+                        newUser.google.id = profile.id;
+                        newUser.google.token = token;
+                        newUser.google.name  = profile.displayName;
+                        newUser.google.email = profile.emails[0].value; 
 
-                    newUser.save(function(err){
-                        if(err) throw err;
-                        return done(null, newUser);
-                    });
-                }
-            });
+                        newUser.save(function(err){
+                            if(err) throw err;
+                            return done(null, newUser);
+                        });
+                    }
+                });
+            }else{
+                console.log('user exist ---' + req.user);
+                var user = req.user;
+                user.google.id = profile.id;
+                user.google.token = token;
+                user.google.name = profile.displayName;
+                user.google.email = profile.emails[0].value;
+                user.save(function(err){
+                    if(err) throw err;
+                    return done(null, err);
+                });
+            }
+
         });
     }));
 };
