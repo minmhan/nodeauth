@@ -77,6 +77,15 @@ module.exports = function(passport){
                         if(err) return done(err);
 
                         if(user){
+                            if(!user.facebook.token){
+                                user.facebook.token = token;
+                                user.facebook.name = profile.name.givenName + ' ' + profile.name.familyName;
+                                user.facebook.email = profile.emails[0].value;
+                                user.save(function(err){
+                                    if(err) throw err;
+                                    return done(null, user);
+                                })
+                            }
                             return done(null, user);
                         }else{
                             var newUser = new User();
@@ -126,6 +135,15 @@ module.exports = function(passport){
                 User.findOne( {'twitter.id': profile.id}, function(err, user){
                     if(err) return done(err);
                     if(user){
+                        if(!user.twitter.token){
+                            user.twitter.token = token;
+                            user.twitter.username = profile.username;
+                            user.twitter.displayName = profile.displayName;
+                            user.save(function(err){
+                                if(err) throw err;
+                                return done(null, user);
+                            })
+                        }
                         return done(null, user);
                     }else{
                         var newUser = new User();
@@ -171,6 +189,15 @@ module.exports = function(passport){
                 User.findOne( { 'google.id': profile.id }, function(err, user){
                     if(err) return done(err);
                     if(user){
+                        if(!user.google.token){
+                            user.google.token = token;
+                            user.google.name = profile.displayName;
+                            user.google.email = profile.emails[0].value;
+                            user.save(function(err){
+                                if(err) throw err;
+                                return done(null, user);
+                            });
+                        }
                         return done(null, user);
                     }else{
                         var newUser = new User();
